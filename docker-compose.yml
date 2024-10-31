@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    container_name: smata-elasticsearch
+    environment:
+      - node.name=smata-elasticsearch
+      - cluster.name=smata-es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - smata-elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - smata
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.2
+    container_name: smata-kibana
+    environment:
+      - ELASTICSEARCH_URL=http://smata-elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=http://smata-elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - smata
+
+volumes:
+  smata-elasticsearch-data:
+    driver: local
+
+networks:
+  smata:
+    name: smata
+    driver: bridge
